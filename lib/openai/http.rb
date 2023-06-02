@@ -7,17 +7,26 @@ module OpenAI
     end
 
     def json_post(path:, parameters:)
-      to_json(conn.post(uri(path: path)) do |req|
+      raw = parameters.delete(:raw) if parameters.key?(:raw)
+      response = conn.post(uri(path: path)) do |req|
         if parameters[:stream].respond_to?(:call)
           req.options.on_data = to_json_stream(user_proc: parameters[:stream])
           parameters[:stream] = true # Necessary to tell OpenAI to stream.
         elsif parameters[:stream]
           raise ArgumentError, "The stream parameter must be a Proc or have a #call method"
         end
-
+    
         req.headers = headers
         req.body = parameters.to_json
-      end&.body)
+      end
+    
+      return nil unless response
+    
+      if raw
+        response.to_hash.merge(body: to_json(response.to_hash[:body]))
+      else
+        to_json(response.body)
+      end
     end
 
     def multipart_post(path:, parameters: nil)
