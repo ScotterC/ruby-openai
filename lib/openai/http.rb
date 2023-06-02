@@ -15,13 +15,13 @@ module OpenAI
         elsif parameters[:stream]
           raise ArgumentError, "The stream parameter must be a Proc or have a #call method"
         end
-    
+
         req.headers = headers
         req.body = parameters.to_json
       end
-    
+
       return nil unless response
-    
+
       if raw
         response.to_hash.merge(body: to_json(response.to_hash[:body]))
       else
