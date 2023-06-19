@@ -49,8 +49,12 @@ module OpenAI
 
       JSON.parse(string)
     rescue JSON::ParserError
-      # Convert a multiline string of JSON objects to a JSON array.
-      JSON.parse(string.gsub("}\n{", "},{").prepend("[").concat("]"))
+      begin
+        # Convert a multiline string of JSON objects to a JSON array.
+        JSON.parse(string.gsub("}\n{", "},{").prepend("[").concat("]"))
+      rescue JSON::ParserError
+        raise ::OpenAI::Error, "Invalid JSON: #{string}"
+      end
     end
 
     # Given a proc, returns an outer proc that can be used to iterate over a JSON stream of chunks.
