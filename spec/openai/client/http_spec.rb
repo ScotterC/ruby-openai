@@ -1,3 +1,5 @@
+require "webmock/rspec"
+
 RSpec.describe OpenAI::HTTP do
   describe "with an aggressive timeout" do
     let(:timeout_errors) { [Faraday::ConnectionFailed, Faraday::TimeoutError] }
@@ -92,6 +94,58 @@ RSpec.describe OpenAI::HTTP do
         expect { response }.to raise_error do |error|
           expect(timeout_errors).to include(error.class)
         end
+      end
+    end
+  end
+
+  describe ".json_post" do
+    before do
+      stub_request :post, "https://api.openai.com/v1/chat/completions"
+    end
+
+    context "without added headers" do
+      it "has basic headers" do
+        OpenAI::Client.new.chat(
+          parameters: {
+            model: "gpt-3.5-turbo",
+            messages: [{ role: "user", content: "Hello!" }],
+            stream: false
+          }
+        )
+
+        expect(a_request(:post, "https://api.openai.com/v1/chat/completions")
+          .with(
+            body: {
+              "model": "gpt-3.5-turbo",
+              "messages": [{"role":"user","content":"Hello!"}],
+              "stream": false
+            },
+        )).to have_been_made.once
+      end
+    end
+
+    context "with added headers" do
+
+
+      it "merges parameter headers with existing" do
+        OpenAI::Client.new.chat(
+          parameters: {
+            model: "gpt-3.5-turbo",
+            messages: [{ role: "user", content: "Hello!" }],
+            stream: false,
+            headers: { "Extra" => "Header"}
+          }
+        )
+
+        expect(a_request(:post, "https://api.openai.com/v1/chat/completions")
+          .with(
+            body: {
+              "model": "gpt-3.5-turbo",
+              "messages": [{"role":"user","content":"Hello!"}],
+              "stream": false
+            },
+            headers: { "Extra" => "Header" }
+          )).to have_been_made.once
       end
     end
   end

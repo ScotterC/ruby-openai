@@ -15,8 +15,13 @@ module OpenAI
         elsif parameters[:stream]
           raise ArgumentError, "The stream parameter must be a Proc or have a #call method"
         end
+<<<<<<< HEAD
 
         req.headers = headers
+=======
+        
+        req.headers = headers.merge(parameters.delete(:headers) || {})
+>>>>>>> 40b05bc (Adding Headers to Json Post)
         req.body = parameters.to_json
       end
 
