@@ -125,8 +125,6 @@ RSpec.describe OpenAI::HTTP do
     end
 
     context "with added headers" do
-
-
       it "merges parameter headers with existing" do
         OpenAI::Client.new.chat(
           parameters: {

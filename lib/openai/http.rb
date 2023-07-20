@@ -7,7 +7,7 @@ module OpenAI
     end
 
     def json_post(path:, parameters:)
-      raw = parameters.delete(:raw) if parameters.key?(:raw)
+      raw = parameters[:raw] if parameters.key?(:raw)
       response = conn.post(uri(path: path)) do |req|
         if parameters[:stream].respond_to?(:call)
           req.options.on_data = to_json_stream(user_proc: parameters[:stream])
@@ -15,14 +15,11 @@ module OpenAI
         elsif parameters[:stream]
           raise ArgumentError, "The stream parameter must be a Proc or have a #call method"
         end
-<<<<<<< HEAD
 
-        req.headers = headers
-=======
-        
-        req.headers = headers.merge(parameters.delete(:headers) || {})
->>>>>>> 40b05bc (Adding Headers to Json Post)
-        req.body = parameters.to_json
+        req.headers = headers.merge(parameters[:headers] || {})
+
+        request_body = parameters.except(:raw, :headers)
+        req.body = request_body.to_json
       end
 
       return nil unless response
